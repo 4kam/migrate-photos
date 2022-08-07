@@ -1,0 +1,1 @@
+# Migrate 4kam photos to S3(Yandex Object Storage)
