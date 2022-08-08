@@ -20,30 +20,31 @@ func main() {
 		log.Fatalf("failed to setup:%v", err)
 	}
 
-	// db := NewDataBase(cfg.DSN)
+	db := NewDataBase(cfg.DSN)
 	uploader, err := NewUploader(cfg.AccessKeyID, cfg.SecretAccessKey, cfg.Bucket)
 	if err != nil {
 		log.Fatalf("failed to build S3 client:%v", err)
 	}
 
-	srv := NewMigrationService(nil, uploader)
+	srv := NewMigrationService(db, uploader)
 
-	/*
-	 */
+	/* TEST
+
 	err = srv.UploadFiles(ctx, []string{
 		"../../testdata/download_photo_0ee29e4c-1c50-4044-aefa-13634093a7b51658494326425.jpg",
 		"../../testdata/hotfield_55b24e10-13bf-4d96-979f-e709fd5fdb111659230027453.jpg",
 		"../../testdata/hotfield_c6a20d03-c3ea-4c7a-a0fa-fb69084e2dc51658457974482.jpg",
 		"../../testdata/panorama_image_part_5_da68cfb2-6f50-4568-a3b9-09d49d7e29df.jpg",
 	})
+	*/
 
-	//err = srv.Migrate(ctx, cfg.BeginDate, cfg.EndDate, cfg.Bucket)
+	err = srv.Migrate(ctx, cfg.BeginDate, cfg.EndDate)
 	done()
 
 	if err != nil {
 		log.Fatalf("failed to migrate for %s to %s:%v", cfg.BeginDate, cfg.EndDate, err)
 	}
-	log.Printf("migrating files for %s to %s is successful", cfg.BeginDate, cfg.EndDate)
+	log.Printf("migrating %d files for %s to %s is successful", srv.numMigratedFiles, cfg.BeginDate, cfg.EndDate)
 }
 
 type сonfig struct {

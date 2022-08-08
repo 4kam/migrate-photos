@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -39,6 +40,26 @@ func (upl *Uploader) UploadFile(ctx context.Context, path string, key string) er
 
 	if err := upl.Upload(ctx, file, key); err != nil {
 		return fmt.Errorf("failed to Upload(%q):%w", path, err)
+	}
+
+	return nil
+}
+
+func (upl *Uploader) CleanupBucket(ctx context.Context, bucket string) error {
+	result, err := upl.cl.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket: aws.String(bucket),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to ListObjectsV2:%w", err)
+	}
+
+	for _, object := range result.Contents {
+		upl.cl.DeleteObject(ctx, &s3.DeleteObjectInput{
+			Bucket: aws.String(bucket),
+			Key:    object.Key,
+		})
+
+		log.Printf("object=%s deleted", aws.ToString(object.Key))
 	}
 
 	return nil
