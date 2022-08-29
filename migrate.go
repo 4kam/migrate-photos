@@ -18,6 +18,7 @@ type File struct {
 	FilePath string
 	DirName  string
 	Migrated bool
+	Stored   bool
 }
 
 type MigrationService struct {
@@ -92,18 +93,16 @@ func (srv *MigrationService) UploadFiles(ctx context.Context, files []File) erro
 
 			for file := range ch {
 				key := srv.getKey(*file)
-				if err := srv.Uploader.UploadFile(ctx, file.FilePath, key); err != nil {
-					if os.IsNotExist(err) {
-						log.Printf("File Does Not Exist:%s", file.FilePath)
-						continue
-					}
-					log.Printf("Error Upload File %s:%v", file.FilePath, err)
-					continue
-				}
-				file.DirName = srv.getNewDir(*file)
-				file.Migrated = true
+				err := srv.Uploader.UploadFile(ctx, file.FilePath, key)
+				if err == nil {
+					file.DirName = srv.getNewDir(*file)
+					file.Migrated = true
+					file.Stored = true
 
-				atomic.AddUint64(&srv.numMigratedFiles, 1)
+					atomic.AddUint64(&srv.numMigratedFiles, 1)
+				} else if err != ErrFileNotExist {
+					log.Printf("Error Upload File %s:%v", file.FilePath, err)
+				}
 			}
 		}()
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,6 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+)
+
+var (
+	ErrFileNotExist = errors.New("file does not exist")
 )
 
 type Uploader struct {
@@ -34,7 +39,7 @@ func (upl *Uploader) Upload(ctx context.Context, r io.Reader, key string) error 
 func (upl *Uploader) UploadFile(ctx context.Context, path string, key string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("failed to open file(%q):%w", path, err)
+		return ErrFileNotExist //fmt.Errorf("failed to open file(%q):%w", path, err)
 	}
 	defer file.Close()
 

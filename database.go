@@ -96,17 +96,17 @@ func (db *DataBase) CleanupMigratedFiles(ctx context.Context) error {
 func (db *DataBase) AddMigratedFiles(ctx context.Context, files []File) error {
 	return db.inTx(ctx, sql.LevelReadCommitted, func(tx *sql.Tx) error {
 		stmt, err := tx.PrepareContext(ctx, driver.CopyIn("[dbo].[MigratedFiles]", driver.BulkOptions{},
-			"FileID", "DirName"))
+			"FileID", "DirName", "Stored"))
 		if err != nil {
 			return fmt.Errorf("failed to prepare: %v", err)
 		}
 		defer stmt.Close()
 
 		for _, v := range files {
-			if !v.Migrated {
-				continue
-			}
-			if _, err = stmt.ExecContext(ctx, v.ID, v.DirName); err != nil {
+			// if !v.Migrated {
+			// 	continue
+			// }
+			if _, err = stmt.ExecContext(ctx, v.ID, v.DirName, v.Stored); err != nil {
 				return fmt.Errorf("failed to add migrated files: %w", err)
 			}
 		}
